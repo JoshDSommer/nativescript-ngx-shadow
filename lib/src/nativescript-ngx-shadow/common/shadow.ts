@@ -12,6 +12,7 @@ declare const CGSizeMake: any;
 declare const UIScreen: any;
 declare const Array: any;
 declare const UIBezierPath: any;
+const OutProvider: { new() } = android.view.ViewOutlineProvider;
 
 let LayeredShadow;
 let PlainShadow;
@@ -19,6 +20,29 @@ let PlainShadow;
 if (isAndroid) {
   LayeredShadow = android.graphics.drawable.LayerDrawable.extend({});
   PlainShadow = android.graphics.drawable.GradientDrawable.extend({});
+}
+
+class MyProvider extends OutProvider {
+  owner;
+  constructor(owner) {
+    super();
+    this.owner = owner;
+    return global.__native(this);
+  }
+
+  getOutline(view, outline) {
+    console.log("getOutline");
+    const outerRadii = Array.create("float", 8);
+    outerRadii[0] = outerRadii[1] = Length.toDevicePixels(this.owner.borderTopLeftRadius, 0);
+    outerRadii[2] = outerRadii[3] = Length.toDevicePixels(this.owner.borderTopRightRadius, 0);
+    outerRadii[4] = outerRadii[5] = Length.toDevicePixels(this.owner.borderBottomRightRadius, 0);
+    outerRadii[6] = outerRadii[7] = Length.toDevicePixels(this.owner.borderBottomLeftRadius, 0);
+    const test = new android.graphics.Path();
+    test.addRoundRect(new android.graphics.RectF(0, 0, view.getWidth(), view.getHeight()), outerRadii, android.graphics.Path.Direction.CW)
+    test.close();
+    // outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), view.getHeight() / 2);
+    outline.setConvexPath(test);
+  }
 }
 
 export class Shadow {
@@ -123,6 +147,15 @@ export class Shadow {
     //   nativeView.setBackgroundDrawable(newBg);
     // }
 
+
+
+    // const outl = new android.graphics.Outline();
+    // nativeView.getOutlineProvider() && nativeView.getOutlineProvider().getOutline(nativeView, outl);
+    // console.log(nativeView.getOutlineProvider(), nativeView.getOutlineProvider() ? nativeView.getOutlineProvider().getClass() : null,
+    //   outl.isEmpty());
+    // TODO: how to detect if view doesn't need this? (button)
+    nativeView.setOutlineProvider(new MyProvider(tnsView));
+
     nativeView.setElevation(
       Shadow.androidDipToPx(nativeView, data.elevation as number),
     );
@@ -198,7 +231,7 @@ export class Shadow {
     nativeView.layer.shouldRasterize = data.rasterize;
     nativeView.layer.rasterizationScale = screen.mainScreen.scale;
     let shadowPath = null;
-    if(data.useShadowPath) {
+    if (data.useShadowPath) {
       shadowPath = UIBezierPath.bezierPathWithRoundedRectCornerRadius(nativeView.bounds, nativeView.layer.shadowRadius).cgPath;
     }
     nativeView.layer.shadowPath = shadowPath;
