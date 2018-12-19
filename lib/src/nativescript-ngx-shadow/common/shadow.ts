@@ -62,65 +62,66 @@ export class Shadow {
 
   private static applyOnAndroid(tnsView: any, data: AndroidData) {
     const nativeView = tnsView.android;
-    let shape;
-    let overrideBackground = true;
+    // let shape;
+    // let overrideBackground = true;
 
 
     let currentBg = nativeView.getBackground();
+    console.log(tnsView, tnsView.text, "Background: " + (currentBg ? currentBg.getClass().toString() : null));
 
-    if (currentBg instanceof android.graphics.drawable.RippleDrawable) { // play nice if a ripple is wrapping a shadow
-      let rippleBg = currentBg.getDrawable(0);
-      if (rippleBg instanceof android.graphics.drawable.InsetDrawable) {
-        overrideBackground = false; // this is a button with it's own shadow
-      } else if (Shadow.isShadow(rippleBg)) { // if the ripple is wrapping a shadow, strip it
-        currentBg = rippleBg;
-      }
-    }
-    if (overrideBackground) {
-      if (Shadow.isShadow(currentBg)) { // make sure to have the right background
-        currentBg = currentBg instanceof LayeredShadow ? // if layered, get the original background
-          currentBg.getDrawable(1) : null;
-      }
+    // if (currentBg instanceof android.graphics.drawable.RippleDrawable) { // play nice if a ripple is wrapping a shadow
+    //   let rippleBg = currentBg.getDrawable(0);
+    //   if (rippleBg instanceof android.graphics.drawable.InsetDrawable) {
+    //     overrideBackground = false; // this is a button with it's own shadow
+    //   } else if (Shadow.isShadow(rippleBg)) { // if the ripple is wrapping a shadow, strip it
+    //     currentBg = rippleBg;
+    //   }
+    // }
+    // if (overrideBackground) {
+    //   if (Shadow.isShadow(currentBg)) { // make sure to have the right background
+    //     currentBg = currentBg instanceof LayeredShadow ? // if layered, get the original background
+    //       currentBg.getDrawable(1) : null;
+    //   }
 
-      const outerRadii = Array.create("float", 8);
-      if (data.cornerRadius === undefined) {
-        outerRadii[0] = outerRadii[1] = Length.toDevicePixels(tnsView.borderTopLeftRadius, 0);
-        outerRadii[2] = outerRadii[3] = Length.toDevicePixels(tnsView.borderTopRightRadius, 0);
-        outerRadii[4] = outerRadii[5] = Length.toDevicePixels(tnsView.borderBottomRightRadius, 0);
-        outerRadii[6] = outerRadii[7] = Length.toDevicePixels(tnsView.borderBottomLeftRadius, 0);
-      } else {
-        java.util.Arrays.fill(outerRadii, Shadow.androidDipToPx(nativeView, data.cornerRadius as number));
-      }
+    //   const outerRadii = Array.create("float", 8);
+    //   if (data.cornerRadius === undefined) {
+    //     outerRadii[0] = outerRadii[1] = Length.toDevicePixels(tnsView.borderTopLeftRadius, 0);
+    //     outerRadii[2] = outerRadii[3] = Length.toDevicePixels(tnsView.borderTopRightRadius, 0);
+    //     outerRadii[4] = outerRadii[5] = Length.toDevicePixels(tnsView.borderBottomRightRadius, 0);
+    //     outerRadii[6] = outerRadii[7] = Length.toDevicePixels(tnsView.borderBottomLeftRadius, 0);
+    //   } else {
+    //     java.util.Arrays.fill(outerRadii, Shadow.androidDipToPx(nativeView, data.cornerRadius as number));
+    //   }
 
-      // use the user defined color or the default in case the color is TRANSPARENT
-      const bgColor = currentBg ?
-        (currentBg instanceof android.graphics.drawable.ColorDrawable && currentBg.getColor() ?
-          currentBg.getColor() : android.graphics.Color.parseColor(data.bgcolor || Shadow.DEFAULT_BGCOLOR)) :
-        android.graphics.Color.parseColor(data.bgcolor || Shadow.DEFAULT_BGCOLOR);
+    //   // use the user defined color or the default in case the color is TRANSPARENT
+    //   const bgColor = currentBg ?
+    //     (currentBg instanceof android.graphics.drawable.ColorDrawable && currentBg.getColor() ?
+    //       currentBg.getColor() : android.graphics.Color.parseColor(data.bgcolor || Shadow.DEFAULT_BGCOLOR)) :
+    //     android.graphics.Color.parseColor(data.bgcolor || Shadow.DEFAULT_BGCOLOR);
 
-      let newBg;
+    //   let newBg;
 
-      if (data.shape !== ShapeEnum.RECTANGLE || data.bgcolor || !currentBg) { // replace background
-        shape = new PlainShadow();
-        shape.setShape(
-          android.graphics.drawable.GradientDrawable[data.shape],
-        );
-        shape.setCornerRadii(outerRadii);
-        shape.setColor(bgColor);
-        newBg = shape;
-      } else { // add a layer
-        const r = new android.graphics.drawable.shapes.RoundRectShape(outerRadii, null, null);
-        shape = new android.graphics.drawable.ShapeDrawable(r);
-        shape.getPaint().setColor(bgColor);
-        var arr = Array.create(android.graphics.drawable.Drawable, 2);
-        arr[0] = shape;
-        arr[1] = currentBg;
-        const drawable = new LayeredShadow(arr);
-        newBg = drawable;
-      }
+    //   if (data.shape !== ShapeEnum.RECTANGLE || data.bgcolor || !currentBg) { // replace background
+    //     shape = new PlainShadow();
+    //     shape.setShape(
+    //       android.graphics.drawable.GradientDrawable[data.shape],
+    //     );
+    //     shape.setCornerRadii(outerRadii);
+    //     shape.setColor(bgColor);
+    //     newBg = shape;
+    //   } else { // add a layer
+    //     const r = new android.graphics.drawable.shapes.RoundRectShape(outerRadii, null, null);
+    //     shape = new android.graphics.drawable.ShapeDrawable(r);
+    //     shape.getPaint().setColor(bgColor);
+    //     var arr = Array.create(android.graphics.drawable.Drawable, 2);
+    //     arr[0] = shape;
+    //     arr[1] = currentBg;
+    //     const drawable = new LayeredShadow(arr);
+    //     newBg = drawable;
+    //   }
 
-      nativeView.setBackgroundDrawable(newBg);
-    }
+    //   nativeView.setBackgroundDrawable(newBg);
+    // }
 
     nativeView.setElevation(
       Shadow.androidDipToPx(nativeView, data.elevation as number),
