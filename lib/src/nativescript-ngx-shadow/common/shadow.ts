@@ -12,36 +12,32 @@ declare const CGSizeMake: any;
 declare const UIScreen: any;
 declare const Array: any;
 declare const UIBezierPath: any;
-const OutProvider: { new() } = android.view.ViewOutlineProvider;
+const ViewOutlineProvider: { new(); BACKGROUND: any } = android.view.ViewOutlineProvider;
 
-let LayeredShadow;
-let PlainShadow;
-
-if (isAndroid) {
-  LayeredShadow = android.graphics.drawable.LayerDrawable.extend({});
-  PlainShadow = android.graphics.drawable.GradientDrawable.extend({});
-}
-
-class MyProvider extends OutProvider {
-  owner;
-  constructor(owner) {
+class ShadowOutlineProvider extends ViewOutlineProvider {
+  owner: WeakRef<any>;
+  /**
+   * Create an outline from a tns view
+   * @param owner tns view
+   */
+  constructor(owner: any) {
     super();
-    this.owner = owner;
+    this.owner = new WeakRef(owner);
     return global.__native(this);
   }
 
   getOutline(view, outline) {
-    console.log("getOutline");
-    const outerRadii = Array.create("float", 8);
-    outerRadii[0] = outerRadii[1] = Length.toDevicePixels(this.owner.borderTopLeftRadius, 0);
-    outerRadii[2] = outerRadii[3] = Length.toDevicePixels(this.owner.borderTopRightRadius, 0);
-    outerRadii[4] = outerRadii[5] = Length.toDevicePixels(this.owner.borderBottomRightRadius, 0);
-    outerRadii[6] = outerRadii[7] = Length.toDevicePixels(this.owner.borderBottomLeftRadius, 0);
-    const test = new android.graphics.Path();
-    test.addRoundRect(new android.graphics.RectF(0, 0, view.getWidth(), view.getHeight()), outerRadii, android.graphics.Path.Direction.CW)
-    test.close();
-    // outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), view.getHeight() / 2);
-    outline.setConvexPath(test);
+    const owner = this.owner.get();
+    if (owner) {
+      const outerRadii = Array.create("float", 8);
+      outerRadii[0] = outerRadii[1] = Length.toDevicePixels(owner.borderTopLeftRadius, 0);
+      outerRadii[2] = outerRadii[3] = Length.toDevicePixels(owner.borderTopRightRadius, 0);
+      outerRadii[4] = outerRadii[5] = Length.toDevicePixels(owner.borderBottomRightRadius, 0);
+      outerRadii[6] = outerRadii[7] = Length.toDevicePixels(owner.borderBottomLeftRadius, 0);
+      const backgroundPath = new android.graphics.Path();
+      backgroundPath.addRoundRect(new android.graphics.RectF(0, 0, view.getWidth(), view.getHeight()), outerRadii, android.graphics.Path.Direction.CW)
+      outline.setConvexPath(backgroundPath);
+    }
   }
 }
 
@@ -80,81 +76,29 @@ export class Shadow {
     );
   }
 
-  private static isShadow(drawable: any): boolean {
-    return (drawable instanceof LayeredShadow || drawable instanceof PlainShadow);
-  }
-
   private static applyOnAndroid(tnsView: any, data: AndroidData) {
     const nativeView = tnsView.android;
-    // let shape;
-    // let overrideBackground = true;
 
 
     let currentBg = nativeView.getBackground();
     console.log(tnsView, tnsView.text, "Background: " + (currentBg ? currentBg.getClass().toString() : null));
 
-    // if (currentBg instanceof android.graphics.drawable.RippleDrawable) { // play nice if a ripple is wrapping a shadow
-    //   let rippleBg = currentBg.getDrawable(0);
-    //   if (rippleBg instanceof android.graphics.drawable.InsetDrawable) {
-    //     overrideBackground = false; // this is a button with it's own shadow
-    //   } else if (Shadow.isShadow(rippleBg)) { // if the ripple is wrapping a shadow, strip it
-    //     currentBg = rippleBg;
-    //   }
-    // }
-    // if (overrideBackground) {
-    //   if (Shadow.isShadow(currentBg)) { // make sure to have the right background
-    //     currentBg = currentBg instanceof LayeredShadow ? // if layered, get the original background
-    //       currentBg.getDrawable(1) : null;
-    //   }
-
-    //   const outerRadii = Array.create("float", 8);
-    //   if (data.cornerRadius === undefined) {
-    //     outerRadii[0] = outerRadii[1] = Length.toDevicePixels(tnsView.borderTopLeftRadius, 0);
-    //     outerRadii[2] = outerRadii[3] = Length.toDevicePixels(tnsView.borderTopRightRadius, 0);
-    //     outerRadii[4] = outerRadii[5] = Length.toDevicePixels(tnsView.borderBottomRightRadius, 0);
-    //     outerRadii[6] = outerRadii[7] = Length.toDevicePixels(tnsView.borderBottomLeftRadius, 0);
-    //   } else {
-    //     java.util.Arrays.fill(outerRadii, Shadow.androidDipToPx(nativeView, data.cornerRadius as number));
-    //   }
-
-    //   // use the user defined color or the default in case the color is TRANSPARENT
-    //   const bgColor = currentBg ?
-    //     (currentBg instanceof android.graphics.drawable.ColorDrawable && currentBg.getColor() ?
-    //       currentBg.getColor() : android.graphics.Color.parseColor(data.bgcolor || Shadow.DEFAULT_BGCOLOR)) :
-    //     android.graphics.Color.parseColor(data.bgcolor || Shadow.DEFAULT_BGCOLOR);
-
-    //   let newBg;
-
-    //   if (data.shape !== ShapeEnum.RECTANGLE || data.bgcolor || !currentBg) { // replace background
-    //     shape = new PlainShadow();
-    //     shape.setShape(
-    //       android.graphics.drawable.GradientDrawable[data.shape],
-    //     );
-    //     shape.setCornerRadii(outerRadii);
-    //     shape.setColor(bgColor);
-    //     newBg = shape;
-    //   } else { // add a layer
-    //     const r = new android.graphics.drawable.shapes.RoundRectShape(outerRadii, null, null);
-    //     shape = new android.graphics.drawable.ShapeDrawable(r);
-    //     shape.getPaint().setColor(bgColor);
-    //     var arr = Array.create(android.graphics.drawable.Drawable, 2);
-    //     arr[0] = shape;
-    //     arr[1] = currentBg;
-    //     const drawable = new LayeredShadow(arr);
-    //     newBg = drawable;
-    //   }
-
-    //   nativeView.setBackgroundDrawable(newBg);
-    // }
-
-
-
-    // const outl = new android.graphics.Outline();
-    // nativeView.getOutlineProvider() && nativeView.getOutlineProvider().getOutline(nativeView, outl);
-    // console.log(nativeView.getOutlineProvider(), nativeView.getOutlineProvider() ? nativeView.getOutlineProvider().getClass() : null,
-    //   outl.isEmpty());
     // TODO: how to detect if view doesn't need this? (button)
-    nativeView.setOutlineProvider(new MyProvider(tnsView));
+    let shouldOverrideOutline = true;
+    if (currentBg instanceof android.graphics.drawable.RippleDrawable) { // play nice if a ripple is wrapping a shadow
+      let rippleBg = currentBg.getDrawable(0);
+      if (rippleBg instanceof android.graphics.drawable.InsetDrawable) {
+        shouldOverrideOutline = false;
+      }
+    }
+    if (shouldOverrideOutline) {
+      if (!(nativeView.getOutlineProvider() instanceof ShadowOutlineProvider)) {
+        nativeView.setOutlineProvider(new ShadowOutlineProvider(tnsView));
+      }
+    } else if (nativeView.getOutlineProvider() instanceof ShadowOutlineProvider) {
+      // if we shouldn't be overrinding, but are, reset to default
+      nativeView.setOutlineProvider(ViewOutlineProvider.BACKGROUND);
+    }
 
     nativeView.setElevation(
       Shadow.androidDipToPx(nativeView, data.elevation as number),
