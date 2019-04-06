@@ -12,33 +12,49 @@ declare const CGSizeMake: any;
 declare const UIScreen: any;
 declare const Array: any;
 declare const UIBezierPath: any;
-const ViewOutlineProvider: { new(); BACKGROUND: any } = android.view.ViewOutlineProvider;
 
-class ShadowOutlineProvider extends ViewOutlineProvider {
-  owner: WeakRef<any>;
-  /**
-   * Create an outline from a tns view
-   * @param owner tns view
-   */
-  constructor(owner: any) {
-    super();
-    this.owner = new WeakRef(owner);
-    return global.__native(this);
-  }
+const ViewOutlineProvider: { new(); BACKGROUND?: any } = android.view.ViewOutlineProvider;
 
-  getOutline(view, outline) {
-    const owner = this.owner.get();
-    if (owner) {
-      const outerRadii = Array.create("float", 8);
-      outerRadii[0] = outerRadii[1] = Length.toDevicePixels(owner.borderTopLeftRadius, 0);
-      outerRadii[2] = outerRadii[3] = Length.toDevicePixels(owner.borderTopRightRadius, 0);
-      outerRadii[4] = outerRadii[5] = Length.toDevicePixels(owner.borderBottomRightRadius, 0);
-      outerRadii[6] = outerRadii[7] = Length.toDevicePixels(owner.borderBottomLeftRadius, 0);
-      const backgroundPath = new android.graphics.Path();
-      backgroundPath.addRoundRect(new android.graphics.RectF(0, 0, view.getWidth(), view.getHeight()), outerRadii, android.graphics.Path.Direction.CW)
-      outline.setConvexPath(backgroundPath);
+let ShadowOutlineProvider: any;
+
+function initializeShadowOutlineProvider() {
+  if (ShadowOutlineProvider) { return; }
+  class ShadowOutlineProviderImpl extends ViewOutlineProvider {
+    owner: WeakRef<any>;
+    /**
+     * Create an outline from a tns view
+     * @param owner tns view
+     */
+    constructor(owner: any) {
+      super();
+      this.owner = new WeakRef(owner);
+      return global.__native(this);
+    }
+
+    getOutline(view: any, outline: any) {
+      const owner = this.owner.get();
+      const viewBg = view.getBackground();
+      if (viewBg) {
+        viewBg.getOutline(outline);
+        if (!outline.isEmpty() && outline.getAlpha() !== 0) {
+          return;
+        }
+        outline.setEmpty();
+        outline.setAlpha(1);
+      }
+      if (owner) {
+        const outerRadii = Array.create("float", 8);
+        outerRadii[0] = outerRadii[1] = Length.toDevicePixels(owner.borderTopLeftRadius, 0);
+        outerRadii[2] = outerRadii[3] = Length.toDevicePixels(owner.borderTopRightRadius, 0);
+        outerRadii[4] = outerRadii[5] = Length.toDevicePixels(owner.borderBottomRightRadius, 0);
+        outerRadii[6] = outerRadii[7] = Length.toDevicePixels(owner.borderBottomLeftRadius, 0);
+        const backgroundPath = new android.graphics.Path();
+        backgroundPath.addRoundRect(new android.graphics.RectF(0, 0, view.getWidth(), view.getHeight()), outerRadii, android.graphics.Path.Direction.CW)
+        outline.setConvexPath(backgroundPath);
+      }
     }
   }
+  ShadowOutlineProvider = ShadowOutlineProviderImpl;
 }
 
 export class Shadow {
@@ -79,25 +95,9 @@ export class Shadow {
   private static applyOnAndroid(tnsView: any, data: AndroidData) {
     const nativeView = tnsView.android;
 
-
-    let currentBg = nativeView.getBackground();
-    console.log(tnsView, tnsView.text, "Background: " + (currentBg ? currentBg.getClass().toString() : null));
-
-    // TODO: how to detect if view doesn't need this? (button)
-    let shouldOverrideOutline = true;
-    if (currentBg instanceof android.graphics.drawable.RippleDrawable) { // play nice if a ripple is wrapping a shadow
-      let rippleBg = currentBg.getDrawable(0);
-      if (rippleBg instanceof android.graphics.drawable.InsetDrawable) {
-        shouldOverrideOutline = false;
-      }
-    }
-    if (shouldOverrideOutline) {
-      if (!(nativeView.getOutlineProvider() instanceof ShadowOutlineProvider)) {
-        nativeView.setOutlineProvider(new ShadowOutlineProvider(tnsView));
-      }
-    } else if (nativeView.getOutlineProvider() instanceof ShadowOutlineProvider) {
-      // if we shouldn't be overrinding, but are, reset to default
-      nativeView.setOutlineProvider(ViewOutlineProvider.BACKGROUND);
+    initializeShadowOutlineProvider();
+    if (nativeView.getOutlineProvider() === ViewOutlineProvider.BACKGROUND && !(nativeView.getOutlineProvider() instanceof ShadowOutlineProvider)) { // override all background providers
+      nativeView.setOutlineProvider(new ShadowOutlineProvider(tnsView));
     }
 
     nativeView.setElevation(
