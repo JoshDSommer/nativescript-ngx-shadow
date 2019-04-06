@@ -96,7 +96,7 @@ export class Shadow {
     const nativeView = tnsView.android;
 
     initializeShadowOutlineProvider();
-    if (nativeView.getOutlineProvider() === ViewOutlineProvider.BACKGROUND && !(nativeView.getOutlineProvider() instanceof ShadowOutlineProvider)) { // override all background providers
+    if (nativeView.getOutlineProvider() === ViewOutlineProvider.BACKGROUND) { // override all background providers
       nativeView.setOutlineProvider(new ShadowOutlineProvider(tnsView));
     }
 
