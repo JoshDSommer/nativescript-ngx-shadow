@@ -1,7 +1,6 @@
 import {
   Directive,
   ElementRef,
-  HostListener,
   Input,
   OnChanges,
   OnInit,
@@ -42,8 +41,6 @@ export class NativeShadowDirective implements OnInit, OnChanges, AfterViewInit, 
 
   private loaded = false;
   private initialized = false;
-  private originalNSFn: any;
-  private previousNSFn: any;
   private iosShadowRapper: View;
   private eventsBound = false;
 
