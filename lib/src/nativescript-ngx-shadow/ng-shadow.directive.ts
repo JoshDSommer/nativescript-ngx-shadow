@@ -1,7 +1,6 @@
 import {
   Directive,
   ElementRef,
-  HostListener,
   Input,
   OnChanges,
   OnInit,
@@ -42,16 +41,10 @@ export class NativeShadowDirective implements OnInit, OnChanges, AfterViewInit, 
 
   private loaded = false;
   private initialized = false;
-  private originalNSFn: any;
-  private previousNSFn: any;
   private iosShadowRapper: View;
   private eventsBound = false;
 
-  constructor(private el: ElementRef, private render: Renderer2) {
-    if (isAndroid) {
-      this.originalNSFn = this.el.nativeElement._redrawNativeBackground; //always store the original method
-    }
-  }
+  constructor(private el: ElementRef, private render: Renderer2) { }
 
   ngOnInit() { // RadListView calls this multiple times for the same view
     if (!this.initialized) {
@@ -117,10 +110,6 @@ export class NativeShadowDirective implements OnInit, OnChanges, AfterViewInit, 
       this.ngOnInit();
     }
     this.applyShadow();
-    if (isAndroid) {
-      this.previousNSFn = this.el.nativeElement._redrawNativeBackground; // just to maintain compatibility with other patches
-      this.el.nativeElement._redrawNativeBackground = this.monkeyPatch;
-    }
   }
 
   private addIosWrapper() {
@@ -141,10 +130,6 @@ export class NativeShadowDirective implements OnInit, OnChanges, AfterViewInit, 
 
   onUnloaded() {
     this.loaded = false;
-
-    if (isAndroid) {
-      this.el.nativeElement._redrawNativeBackground = this.originalNSFn; // always revert to the original method
-    }
   }
   ngAfterViewInit() {
     this.addIosWrapper();
@@ -188,11 +173,6 @@ export class NativeShadowDirective implements OnInit, OnChanges, AfterViewInit, 
       this.applyShadow();
     }
   }
-
-  private monkeyPatch = val => {
-    this.previousNSFn.call(this.el.nativeElement, val);
-    this.applyShadow();
-  };
 
   private applyShadow() {
     if (
