@@ -18,6 +18,8 @@ import { Shadow } from './common/shadow';
 import { Shape, ShapeEnum } from './common/shape.enum';
 import { View } from 'tns-core-modules/ui/page/page';
 import { StackLayout } from 'tns-core-modules/ui/layouts/stack-layout';
+import {GridLayout} from "tns-core-modules/ui/layouts/grid-layout";
+
 import { addWeakEventListener, removeWeakEventListener } from "tns-core-modules/ui/core/weak-event-listener";
 declare const android: any;
 
@@ -131,8 +133,19 @@ export class NativeShadowDirective implements OnInit, OnChanges, AfterViewInit, 
         'StackLayout'
       ) as StackLayout;
 
+
+
+
       // wrappingElement.cssClasses = mainElement.cssClasses;
       const parent = originalElement.parentNode;
+
+      // Account for GridLayout properties
+      if (parent instanceof GridLayout) {
+        const gridProperties = ["row", "col", "rowSpan", "colSpan"];
+        for (let property of gridProperties) {
+          this.iosShadowRapper[property] = originalElement[property];
+        }
+      }
       this.render.insertBefore(parent, this.iosShadowRapper, originalElement);
       this.render.removeChild(parent, originalElement);
       this.render.appendChild(this.iosShadowRapper, originalElement);
