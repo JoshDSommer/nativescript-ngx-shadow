@@ -25,3 +25,7 @@ demo/report/stats.json
 
 platforms
 dist
+
+## ngc generated metadata
+src/**/*.metadata.json
+src/**/*.ngsummary.json

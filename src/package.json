@@ -1,0 +1,58 @@
+{
+	"name": "nativescript-ngx-shadow",
+	"version": "6.5.0",
+	"description": "Nativescript Angular Shadow",
+	"main": "ngx-shadow",
+	"typings": "index.d.ts",
+	"nativescript": {
+		"platforms": {
+			"android": "6.0.0",
+			"ios": "6.0.1"
+		}
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/TheOriginalJosh/nativescript-ngx-shadow.git"
+	},
+	"scripts": {
+		"ngc": "npm i && ngc",
+		"build": "npm run ngc",
+		"tslint": "cd .. && tslint \"**/*.ts\" --config tslint.json --exclude \"**/node_modules/**\"",
+		"ci.tslint": "npm i && tslint '**/*.ts' --config '../tslint.json' --exclude '**/node_modules/**' --exclude '**/platforms/**'",
+		"prepack": "npm run build.native",
+		"demo-angular.ios": "npm i && cd ../demo-angular && tns run ios",
+		"demo-angular.android": "npm i && cd ../demo-angular && tns run android",
+		"demo-angular.reset": "cd ../demo-angular && npx rimraf -- hooks node_modules platforms package-lock.json",
+		"plugin.prepare": "npm run build && cd ../demo && tns plugin remove nativescript-ngx-shadow && tns plugin add ../src && cd ../demo-angular && tns plugin remove nativescript-ngx-shadow && tns plugin add ../src",
+		"clean": "npm run demo.reset && npm run demo-angular.reset && npx rimraf -- node_modules package-lock.json && npm i"
+	},
+	"keywords": [
+		"NativeScript",
+		"JavaScript",
+		"Android",
+		"iOS"
+	],
+	"author": {
+		"name": "Josh Sommer",
+		"email": "joshdsommer@gmail.com"
+	},
+	"bugs": {
+		"url": "https://github.com/TheOriginalJosh/nativescript-ngx-shadow/issues"
+	},
+	"license": "Apache-2.0",
+	"homepage": "https://github.com/TheOriginalJosh/nativescript-ngx-shadow",
+	"devDependencies": {
+		"@angular/compiler": "8.0.0",
+		"@angular/compiler-cli": "8.0.0",
+		"@angular/core": "8.0.0",
+		"tns-core-modules": "^6.0.0",
+		"tns-platform-declarations": "^6.0.0",
+		"typescript": "~3.4.5",
+		"prompt": "^1.0.0",
+		"rimraf": "^2.6.3",
+		"tslint": "^5.12.1",
+		"semver": "^5.6.0"
+	},
+	"dependencies": {},
+	"bootstrapper": "nativescript-plugin-seed"
+}
