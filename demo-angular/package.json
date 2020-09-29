@@ -1,0 +1,48 @@
+{
+  "description": "NativeScript Application",
+  "license": "SEE LICENSE IN <your-license-filename>",
+  "repository": "<fill-your-repository-here>",
+  "dependencies": {
+    "@angular/animations": "~10.1.0",
+    "@angular/common": "~10.1.0",
+    "@angular/compiler": "~10.1.0",
+    "@angular/core": "~10.1.0",
+    "@angular/forms": "~10.1.0",
+    "@angular/platform-browser": "~10.1.0",
+    "@angular/platform-browser-dynamic": "~10.1.0",
+    "@angular/router": "~10.1.0",
+    "@nativescript/theme": "~2.2.0",
+    "@nativescript/core": "~7.0.0",
+    "@nativescript/angular": "~10.1.0",
+    "nativescript-ngx-shadow": "file:../src",
+    "reflect-metadata": "~0.1.12",
+    "rxjs": "^6.4.0",
+    "zone.js": "0.11.1",
+    "@nativescript/webpack": "~3.0.0"
+  },
+  "devDependencies": {
+    "@angular/compiler-cli": "~10.1.0",
+    "@nativescript/android": "7.0.0",
+    "@nativescript/ios": "7.0.0",
+    "@nativescript/types": "~7.0.0",
+    "@ngtools/webpack": "~10.1.0",
+    "typescript": "~3.9.7"
+  },
+  "gitHead": "a6fec076a20f898feabb4466a2c411158c18a100",
+  "readme": "NativeScript Application",
+  "main": "main.js",
+  "scripts": {
+    "e2e": "node ./node_modules/nativescript-dev-appium/check-dev-deps.js &&  tsc -p e2e  &&  mocha --opts ./e2e/config/mocha.opts ",
+    "e2e-no-write": "node ./node_modules/nativescript-dev-appium/check-dev-deps.js &&  tsc -p e2e  &&  mocha --opts ./e2e/config/mocha.opts --mps.excludeWrite ",
+    "e2e-watch": "tsc -p e2e --watch",
+    "fix-jscrambler": "node ./resources/script/fix-jscrambler.js",
+    "configure-config-dev": "node ./resources/script/configure-config-dev.js",
+    "configure-config-coll": "node ./resources/script/configure-config-collaudo.js",
+    "configure-config-prod": "node ./resources/script/configure-config-prod.js",
+    "obfuscate-android-app": "./fastlane/guardsquare/android/dexguard.sh",
+    "obfuscate-ios-app": "node ./resources/script/onespan/send-ipa-to-onespan-got.js send",
+    "ngcc": "ngcc --properties es2015 module main --first-only",
+    "postinstall": "npm run ngcc",
+    "clean": "npx rimraf hooks node_modules package-lock.json platforms"
+  }
+}
